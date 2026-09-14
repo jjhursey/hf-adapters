@@ -80,7 +80,7 @@ pytestmark = pytest.mark.model_harness("causal")
 # can be derived automatically without relying on AIU_WORLD_RANK_* env vars.
 
 _DEFAULT_MODEL = "ibm-granite/granite-3.3-8b-instruct"
-_PROMPT = "The capital of France is"
+_DEFAULT_PROMPT = "The capital of France is"
 _EXPECTED_SUBSTRING = "Paris"
 _DEFAULT_MAX_NEW_TOKENS = 8
 _DEFAULT_BATCH_SIZE = 1
@@ -143,10 +143,10 @@ def _steady_state_itl(per_token: list[float]) -> float | None:
 
 def run_multicard_smoke_test(
     model_path: str,
-    prompt: str,
     max_new_tokens: int = _DEFAULT_MAX_NEW_TOKENS,
     dtype: "torch.dtype | None" = None,
     batch_size: int = _DEFAULT_BATCH_SIZE,
+    prompt: str = _DEFAULT_PROMPT,
 ) -> dict[str, Any]:
     """Load model and generate tokens; return a diagnostics dict.
 
@@ -383,7 +383,7 @@ def run_multicard_smoke_test(
 @pytest.mark.parametrize("model_path", [_DEFAULT_MODEL])
 def test_multicard_smoke_single_card(model_path: str) -> None:
     """Single-card smoke test: load, generate, verify output passes all checks."""
-    result = run_multicard_smoke_test(model_path, _PROMPT)
+    result = run_multicard_smoke_test(model_path, prompt=_DEFAULT_PROMPT)
     assert result["status"] == "PASS", (
         f"Smoke test failed with status {result['status']}.\n"
         f"Checks: {result.get('seq_checks')}\n"
@@ -404,7 +404,9 @@ if __name__ == "__main__":
 
     _model = sys.argv[1] if len(sys.argv) > 1 else _DEFAULT_MODEL
     _max_new_tokens = int(sys.argv[2]) if len(sys.argv) > 2 else _DEFAULT_MAX_NEW_TOKENS
-    _result = run_multicard_smoke_test(_model, _PROMPT, _max_new_tokens)
+    _result = run_multicard_smoke_test(
+        _model, max_new_tokens=_max_new_tokens, prompt=_DEFAULT_PROMPT
+    )
     print(f"\nFinal status: {_result['status']}")
     if _result["error"]:
         print(_result["error"])

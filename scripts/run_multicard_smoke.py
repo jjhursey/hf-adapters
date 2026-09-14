@@ -105,7 +105,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Number of identical prompts to batch together (default: 1).",
     )
     parser.add_argument(
-        "--prompt",
+        "--prompt-file",
         default=None,
         help=f"Read prompt from the file (default: {DEFAULT_PROMPT})",
     )
@@ -159,24 +159,26 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  max_new_tokens   : {args.max_new_tokens}")
         print(f"  batch            : {args.batch}")
         print(f"  dtype            : {args.dtype or '(not set — model default)'}")
-        print(f"  Prompt File      : {args.prompt}")
+        print(f"  Prompt File      : {args.prompt_file}")
         print("=" * 70)
 
-    if args.prompt is not None:
+    if args.prompt_file is not None:
         try:
-            with open(args.prompt, "r") as _f:
+            with open(args.prompt_file, "r") as _f:
                 prompt = _f.read()
         except OSError as e:
-            raise RuntimeError(f"Cannot read prompt file {args.prompt!r}: {e}") from e
+            raise RuntimeError(
+                f"Cannot read prompt file {args.prompt_file!r}: {e}"
+            ) from e
     else:
         prompt = DEFAULT_PROMPT
 
     result = run_multicard_smoke_test(
         args.model,
-        prompt,
-        args.max_new_tokens,
+        max_new_tokens=args.max_new_tokens,
         dtype=dtype,
         batch_size=args.batch,
+        prompt=prompt,
     )
 
     # ── Summary table ──────────────────────────────────────────────────────
